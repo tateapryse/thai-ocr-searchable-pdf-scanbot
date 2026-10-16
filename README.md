@@ -1,3 +1,95 @@
+# Thai OCR → Searchable PDF (React Native)
+
+A small pipeline, built on top of the Scanbot React Native SDK, that takes a PDF of
+scanned Thai-language pages and produces either (a) the recognized Thai text, or
+(b) a **searchable PDF** that looks identical to the original but carries a selectable,
+Ctrl+F-able Thai text layer.
+
+The point of the exercise: Thai is a non-Latin script, so the fast Latin-only engine
+(`SCANBOT_OCR`) can't read it. This uses the **Tesseract** engine with Thai trained
+data (`tha.traineddata`) instead.
+
+## How the pipeline works
+
+Both flows start by rasterizing the PDF to page images, then diverge:
+
+```
+                    ┌─ recognizeOnImages (Tesseract, 'tha') ─────────► recognized text  → .txt
+PDF ─ extractImageFiles ─► page images ─┤
+                    └─ generateFromImages (pageSize CUSTOM, Tesseract 'tha') ─► searchable PDF
+```
+
+Code lives in [`src/codeSnippets/document/result-handling/ocr-msig.ts`](src/codeSnippets/document/result-handling/ocr-msig.ts),
+wired to the UI in [`src/screens/OcrTestScreen.tsx`](src/screens/OcrTestScreen.tsx).
+
+1. **Rasterize.** `ScanbotPdfImageExtractor.extractImageFiles({ pdfFileUri })` renders each
+   PDF page to an image and returns a `string[]` of image file URIs. (The source PDF is
+   treated as a scan — any existing text layer is ignored; recognition runs on pixels.)
+2. **Text path** — `ocrPdfThaiExample()`:
+   `ScanbotOcrEngine.recognizeOnImages({ images, configuration: { engineMode: 'TESSERACT', languages: ['tha'] } })`
+   returns `recognizedText`, saved to `msig_ocr.txt`.
+3. **Searchable-PDF path** — `ocrSearchablePdfThaiExample()`:
+   `ScanbotPdfGenerator.generateFromImages({ images, pdfConfiguration: { pageSize: 'CUSTOM', pageDirection: 'AUTO' }, ocrConfiguration: { engineMode: 'TESSERACT', languages: ['tha'] } })`
+   returns a new PDF with an invisible Thai text layer over each page. `pageSize: 'CUSTOM'`
+   keeps every page at the original scan's dimensions instead of forcing A4.
+
+### The OCR engine and language data
+
+- Engine: **Tesseract** (`engineMode: 'TESSERACT'`), which supports non-Latin scripts.
+- Thai data: `tha.traineddata`, bundled at
+  `android/app/src/main/assets/ocr_blobs/` (Android) and
+  `ios/ScanbotSDKOCRData.bundle/` (iOS). On init the SDK copies these into its runtime
+  tessdata directory; `ScanbotSDK.getOcrConfigs()` then reports the installed languages
+  (e.g. `de, en, th`) and the data path.
+- Note the code conventions: the API wants the 3-letter Tesseract code (`tha`), while
+  `getOcrConfigs()` reports the 2-letter ISO code (`th`). Same language.
+
+## Prerequisites
+
+- A Scanbot SDK license key. The committed key is a placeholder
+  (`YOUR_SCANBOT_LICENSE_KEY` in [`App.tsx`](App.tsx)). Get a free trial at
+  <https://docs.scanbot.io/trial/>, generated for the app identifier that matches this
+  app's Android `applicationId` / iOS bundle id (here: `com.thaiocr`). The key is bound
+  to that identifier exactly, or init fails with `FAILURE_APP_ID_MISMATCH`.
+- `tha.traineddata` present in the asset folders above (included in this repo).
+
+## Running it (Android)
+
+The three buttons live under **OCR PDF (Thai)** on the home screen.
+
+```bash
+# 1. Push a test PDF into the app's external files dir
+adb push src/files/MSIG.pdf /sdcard/Android/data/com.thaiocr/files/MSIG.pdf
+
+# 2. Build + install (invoking Gradle directly is more reliable than the RN CLI on Windows)
+cd android && ./gradlew.bat app:installDebug   # ./gradlew on macOS/Linux
+cd ..
+
+# 3. Metro tunnel, then launch
+adb reverse tcp:8081 tcp:8081
+npx react-native start           # in one terminal
+adb shell monkey -p com.thaiocr -c android.intent.category.LAUNCHER 1
+
+# 4. Tap "Make searchable Thai PDF from MSIG.pdf", then pull the result
+adb pull /sdcard/Android/data/com.thaiocr/files/MSIG_searchable.pdf ./MSIG_searchable.pdf
+```
+
+Gotchas worth knowing, all learned the hard way:
+
+- **Launch with `monkey`, not `am start`.** This app's `applicationId` (`com.thaiocr`)
+  differs from its `namespace` (`io.scanbot.example.sdk.reactnative`), so
+  `am start com.thaiocr/.MainActivity` fails — the activity class isn't under that package.
+- **Emulator RAM.** Tesseract on full-resolution pages allocates ~500 MB. On a 2 GB AVD
+  the kernel's low-memory killer terminates the (foreground) app mid-OCR, which looks like
+  a silent crash with no stack trace. Give the emulator ~4 GB.
+- **Recognition quality** depends on the scan's resolution. On a low-res source the Thai
+  output has errors; raising the page-extraction DPI before OCR is the main lever.
+
+---
+
+_This project is built on the Scanbot SDK React Native example app. The original sample
+README follows._
+
 <p align="left">
   <img src=".images/ScanbotSDKLogo.png#gh-light-mode-only" width="15%" />
 </p>
