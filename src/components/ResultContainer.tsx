@@ -1,0 +1,22 @@
+import {ScrollView, StyleSheet, View, ViewStyle} from 'react-native';
+import React from 'react';
+
+export function ResultContainer(props: {
+  children: React.ReactNode;
+  style?: ViewStyle;
+}) {
+  return (
+    <View style={[styles.container, props.style && props.style]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {props.children}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 2,
+  },
+});

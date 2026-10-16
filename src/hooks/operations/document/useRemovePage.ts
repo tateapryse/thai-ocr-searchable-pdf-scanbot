@@ -1,0 +1,43 @@
+import {useCallback, useContext} from 'react';
+import {
+  checkLicense,
+  errorMessageAlert,
+  PrimaryRouteNavigationProp,
+  Screens,
+} from '@utils';
+import {useNavigation} from '@react-navigation/native';
+import {DocumentContext} from '@context';
+
+import {ScanbotDocument} from 'react-native-scanbot-sdk';
+
+export function useRemovePage() {
+  const navigation = useNavigation<PrimaryRouteNavigationProp>();
+  const {setDocument} = useContext(DocumentContext);
+
+  return useCallback(
+    async ({pageUuid, documentUuid}: {pageUuid: string; documentUuid: string}) => {
+      try {
+        /**
+         * Check the license status and return early
+         * if the license is not valid
+         */
+        if (!(await checkLicense())) {
+          return;
+        }
+        /** Remove the document page */
+        const documentResult = await ScanbotDocument.removePages({
+          pageUuids: [pageUuid],
+          documentUuid: documentUuid,
+        });
+        /**
+         * Handle the result
+         */
+        setDocument(documentResult);
+        navigation.navigate(Screens.DOCUMENT_RESULT);
+      } catch (e: any) {
+        errorMessageAlert(e.message);
+      }
+    },
+    [navigation, setDocument],
+  );
+}

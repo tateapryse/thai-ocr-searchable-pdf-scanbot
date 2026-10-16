@@ -1,0 +1,152 @@
+import React from 'react';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  useCheckScanner,
+  useCleanup,
+  useCreateDocumentWithPage,
+  useCreditCardScanner,
+  useCroppingView,
+  useDocumentDataExtractor,
+  useDocumentDataExtractorOnImage,
+  useDocumentQualityAnalyzer,
+  useLicenseInfo,
+  useMRZScanner,
+  useMultiplePageScanning,
+  useOCRConfigs,
+  usePerformOCR,
+  useScanCheckFromImage,
+  useScanCreditCardFromImage,
+  useScanMRZFromImage,
+  useSinglePageScanning,
+  useSinglePageScanningWithFinder,
+  useTextPatternScanner,
+  useVinScanner,
+} from '@hooks';
+import {FeatureHeader, FeatureItem, ScanbotLearnMore} from '@components';
+import {PrimaryRouteNavigationProp, Screens} from '@utils';
+import {useNavigation} from '@react-navigation/native';
+
+export function HomeScreen() {
+  const navigation = useNavigation<PrimaryRouteNavigationProp>();
+  /** ScanbotSDK Features */
+  const onMRZScanner = useMRZScanner();
+  const onDocumentDataExtractor = useDocumentDataExtractor();
+  const onVinScanner = useVinScanner();
+  const onCheckScanner = useCheckScanner();
+  const onCreditCardScanner = useCreditCardScanner();
+  const onTextPatternScanner = useTextPatternScanner();
+  const onScanCheckOnImage = useScanCheckFromImage();
+  const onScanMRZOnImage = useScanMRZFromImage();
+  const onDocumentDataExtractorOnImage = useDocumentDataExtractorOnImage();
+  const onScanCreditCard = useScanCreditCardFromImage();
+  const onPerformOCR = usePerformOCR();
+  const onDocumentQualityAnalyzer = useDocumentQualityAnalyzer();
+  const onLicenseInfo = useLicenseInfo();
+  const onOCRConfigs = useOCRConfigs();
+  const onCleanup = useCleanup();
+  const onSinglePageScanning = useSinglePageScanning();
+  const onSinglePageScanningWithFinder = useSinglePageScanningWithFinder();
+  const onMultiplePageScanning = useMultiplePageScanning();
+  const onCreateDocument = useCreateDocumentWithPage();
+  const onCroppingView = useCroppingView();
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+        <FeatureHeader title={'DOCUMENT SCANNING'} />
+        <FeatureItem
+          onPress={onSinglePageScanning}
+          title={'Single Page Scanning'}
+        />
+        <FeatureItem
+          onPress={onSinglePageScanningWithFinder}
+          title={'Single Page Scanning with Finder'}
+        />
+        <FeatureItem
+          onPress={onMultiplePageScanning}
+          title={'Multi Page Scanning'}
+        />
+        <FeatureItem
+          title={'Create Document from Image'}
+          onPress={onCreateDocument}
+        />
+        <FeatureItem
+          title={'Document Scanner View (Classic UI)'}
+          onPress={() => navigation.navigate(Screens.DOCUMENT_SCANNER_VIEW)}
+        />
+        <FeatureItem
+          title={'Cropping View (Classic UI)'}
+          onPress={onCroppingView}
+        />
+
+        <FeatureHeader title={'DATA SCANNERS'} />
+        <FeatureItem onPress={onMRZScanner} title={'Scan MRZ'} />
+        <FeatureItem onPress={onCheckScanner} title={'Scan Check'} />
+        <FeatureItem onPress={onVinScanner} title={'Scan VIN'} />
+        <FeatureItem onPress={onCreditCardScanner} title={'Scan Credit Card'} />
+        <FeatureItem
+          onPress={onTextPatternScanner}
+          title={'Scan Text Pattern'}
+        />
+        <FeatureItem
+          onPress={onDocumentDataExtractor}
+          title={'Document Data Extractor'}
+        />
+
+        <FeatureHeader title={'Scan data from Image'} />
+        <FeatureItem onPress={onScanMRZOnImage} title={'Scan MRZ from Image'} />
+        <FeatureItem
+          onPress={onScanCheckOnImage}
+          title={'Scan Check from Image'}
+        />
+        <FeatureItem
+          onPress={onScanCreditCard}
+          title={'Scan Credit Card from Image'}
+        />
+        <FeatureItem
+          onPress={onDocumentDataExtractorOnImage}
+          title={'Extract Document Data from Image'}
+        />
+
+        <FeatureHeader title={'MISCELLANEOUS'} />
+        <FeatureItem
+          title={'OCR PDF (Thai)'}
+          onPress={() => navigation.navigate(Screens.OCR_TEST)}
+        />
+        <FeatureItem
+          onPress={onDocumentQualityAnalyzer}
+          title={'Document Quality Analyzer'}
+        />
+        <FeatureItem title={'Perform OCR on image'} onPress={onPerformOCR} />
+        <FeatureItem onPress={onOCRConfigs} title={'OCR Configs'} />
+        <FeatureItem onPress={onLicenseInfo} title={'License Info'} />
+        <FeatureItem onPress={onCleanup} title={'Clear storage'} />
+        <ScanbotLearnMore />
+      </ScrollView>
+      <Text style={styles.copyrightLabel}>
+        Copyright {new Date().getFullYear()} Scanbot SDK GmbH. All rights
+        reserved.
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  list: {
+    marginTop: '1%',
+    marginLeft: '5%',
+    height: '90%',
+    width: '90%',
+  },
+  copyrightLabel: {
+    textAlign: 'center',
+    lineHeight: 40,
+    width: '100%',
+    height: 40,
+    color: 'gray',
+    fontSize: 12,
+  },
+});

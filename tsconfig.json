@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@components": ["./src/components"],
+      "@context": ["./src/context"],
+      "@hooks": ["./src/hooks"],
+      "@utils": ["./src/utils"],
+      "@theme": ["./src/theme"],
+      "@codeSnippets": ["./src/codeSnippets"]
+    }
+  },
+  "extends": "@react-native/typescript-config",
+}
